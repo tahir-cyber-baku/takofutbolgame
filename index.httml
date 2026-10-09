@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Futbol Oyunu</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    background: #0a3d1f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: white;
+    overflow: hidden;
+  }
+  .container {
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px #000;
+    font-size: 2.2rem;
+  }
+  #gameCanvas {
+    background: #1a7a3a;
+    border: 6px solid #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.6);
+    display: block;
+    margin: 0 auto;
+  }
+  .info {
+    margin-top: 15px;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .score-box {
+    background: rgba(0,0,0,0.4);
+    padding: 8px 20px;
+    border-radius: 8px;
+    min-width: 120px;
+  }
+  .controls {
+    margin-top: 12px;
+    font-size: 0.95rem;
+    opacity: 0.85;
+  }
+  button {
+    margin-top: 15px;
+    padding: 10px 28px;
+    font-size: 1.1rem;
+    background: #ffcc00;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #222;
+    transition: 0.2s;
+  }
+  button:hover {
+    background: #ffdd44;
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚽ Futbol Oyunu</h1>
+  <canvas id="gameCanvas" width="900" height="500"></canvas>
+  <div class="info">
+    <div class="score-box">Sən: <span id="playerScore">0</span></div>
+    <div class="score-box">Komputer: <span id="aiScore">0</span></div>
+  </div>
+  <div class="controls">
+    İdarəetmə: ← → ↑ ↓ və ya W A S D &nbsp;|&nbsp; Topa vurmaq üçün boşluq (Space)
+  </div>
+  <button onclick="restartGame()">Yenidən Başla</button>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const W = canvas.width;
+const H = canvas.height;
+
+// Oyun obyektləri
+const player = {
+  x: 150,
+  y: H / 2,
+  radius: 18,
+  speed: 4.2,
+  color: '#1565c0'
+};
+
+const ai = {
+  x: W - 150,
+  y: H / 2,
+  radius: 18,
+  speed: 3.3,
+  color: '#c62828'
+};
+
+const ball = {
+  x: W / 2,
+  y: H / 2,
+  radius: 12,
+  vx: 0,
+  vy: 0,
+  friction: 0.985
+};
+
+let playerScore = 0;
+let aiScore = 0;
+let keys = {};
+let gameOver = false;
+
+// Klaviatura
+document.addEventListener('keydown', e => {
+  keys[e.key.toLowerCase()] = true;
+  if (e.code === 'Space') e.preventDefault();
+});
+document.addEventListener('keyup', e => {
+  keys[e.key.toLowerCase()] = false;
+});
+
+// Sahəni çəkmək
+function drawField() {
+  // Yaşıl fon
+  ctx.fillStyle = '#1a7a3a';
+  ctx.fillRect(0, 0, W, H);
+
+  // Ortadakı dairə
+  ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(W/2, H/2, 70, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Orta xətt
+  ctx.beginPath();
+  ctx.moveTo(W/2, 0);
+  ctx.lineTo(W/2, H);
+  ctx.stroke();
+
+  // Qapılar
+  // Sol qapı (sənin)
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.fillRect(0, H/2 - 70, 25, 140);
+  ctx.strokeStyle = '#fff';
+  ctx.strokeRect(0, H/2 - 70, 25, 140);
+
+  // Sağ qapı (AI)
+  ctx.fillRect(W - 25, H/2 - 70, 25, 140);
+  ctx.strokeRect(W - 25, H/2 - 70, 25, 140);
+
+  // Cərimə sahələri
+  ctx.strokeRect(0, H/2 - 110, 90, 220);
+  ctx.strokeRect(W - 90, H/2 - 110, 90, 220);
+}
+
+// Oyunçunu çəkmək
+function drawPlayer(p) {
+  // Bədən
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+  ctx.fillStyle = p.color;
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Gözlər
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(p.x - 5, p.y - 4, 3, 0, Math.PI * 2);
+  ctx.arc(p.x + 5, p.y - 4, 3, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Topu çəkmək
+function drawBall() {
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#111';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Top naxışı
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.radius * 0.6, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+// Toqquşma yoxlaması
+function collide(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return Math.sqrt(dx*dx + dy*dy) < a.radius + b.radius;
+}
+
+// Topa vurmaq
+function kickBall(p) {
+  if (collide(p, ball)) {
+    const angle = Math.atan2(ball.y - p.y, ball.x - p.x);
+    const power = 9;
+    ball.vx = Math.cos(angle) * power;
+    ball.vy = Math.sin(angle) * power;
+  }
+}
+
+// AI məntiqi
+function updateAI() {
+  // Topa yaxınlaş
+  const targetY = ball.y;
+  if (ai.y < targetY - 5) ai.y += ai.speed;
+  if (ai.y > targetY + 5) ai.y -= ai.speed;
+
+  // Topu qorumağa çalış
+  if (ball.x > W * 0.55) {
+    if (ai.x > ball.x + 30) ai.x -= ai.speed;
+    if (ai.x < ball.x - 30) ai.x += ai.speed;
+  } else {
+    // Öz qapısına yaxın qal
+    if (ai.x < W - 180) ai.x += ai.speed * 0.6;
+    if (ai.x > W - 120) ai.x -= ai.speed * 0.6;
+  }
+
+  // Sərhədlər
+  ai.x = Math.max(ai.radius + 30, Math.min(W - ai.radius - 10, ai.x));
+  ai.y = Math.max(ai.radius + 5, Math.min(H - ai.radius - 5, ai.y));
+
+  // AI topa vursun
+  if (collide(ai, ball) && Math.random() > 0.4) {
+    const angle = Math.atan2(ball.y - ai.y, ball.x - ai.x);
+    ball.vx = Math.cos(angle) * 7.5;
+    ball.vy = Math.sin(angle) * 7.5;
+  }
+}
+
+// Oyunçu hərəkəti
+function updatePlayer() {
+  if (keys['arrowleft'] || keys['a']) player.x -= player.speed;
+  if (keys['arrowright'] || keys['d']) player.x += player.speed;
+  if (keys['arrowup'] || keys['w']) player.y -= player.speed;
+  if (keys['arrowdown'] || keys['s']) player.y += player.speed;
+
+  // Sərhədlər
+  player.x = Math.max(player.radius + 5, Math.min(W - player.radius - 30, player.x));
+  player.y = Math.max(player.radius + 5, Math.min(H - player.radius - 5, player.y));
+
+  // Space ilə vurmaq
+  if (keys[' '] || keys['space']) {
+    kickBall(player);
+  }
+}
+
+// Top fizikası
+function updateBall() {
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+  ball.vx *= ball.friction;
+  ball.vy *= ball.friction;
+
+  // Yuxarı-aşağı divar
+  if (ball.y - ball.radius < 0 || ball.y + ball.radius > H) {
+    ball.vy *= -0.85;
+    ball.y = Math.max(ball.radius, Math.min(H - ball.radius, ball.y));
+  }
+
+  // Sol divar (qapı istisna)
+  if (ball.x - ball.radius < 0) {
+    if (ball.y > H/2 - 70 && ball.y < H/2 + 70) {
+      // Qol! AI vurdu
+      aiScore++;
+      document.getElementById('aiScore').textContent = aiScore;
+      resetBall();
+    } else {
+      ball.vx *= -0.85;
+      ball.x = ball.radius;
+    }
+  }
+
+  // Sağ divar
+  if (ball.x + ball.radius > W) {
+    if (ball.y > H/2 - 70 && ball.y < H/2 + 70) {
+      // Qol! Sən vurdun
+      playerScore++;
+      document.getElementById('playerScore').textContent = playerScore;
+      resetBall();
+    } else {
+      ball.vx *= -0.85;
+      ball.x = W - ball.radius;
+    }
+  }
+
+  // Oyunçu ilə toqquşma
+  if (collide(player, ball)) {
+    const angle = Math.atan2(ball.y - player.y, ball.x - player.x);
+    const speed = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy) * 0.3 + 2;
+    ball.vx = Math.cos(angle) * speed;
+    ball.vy = Math.sin(angle) * speed;
+  }
+}
+
+function resetBall() {
+  ball.x = W / 2;
+  ball.y = H / 2;
+  ball.vx = (Math.random() > 0.5 ? 1 : -1) * 3;
+  ball.vy = (Math.random() - 0.5) * 4;
+}
+
+function restartGame() {
+  playerScore = 0;
+  aiScore = 0;
+  document.getElementById('playerScore').textContent = 0;
+  document.getElementById('aiScore').textContent = 0;
+  player.x = 150;
+  player.y = H / 2;
+  ai.x = W - 150;
+  ai.y = H / 2;
+  resetBall();
+  gameOver = false;
+}
+
+// Əsas döngü
+function gameLoop() {
+  drawField();
+  updatePlayer();
+  updateAI();
+  updateBall();
+  drawPlayer(player);
+  drawPlayer(ai);
+  drawBall();
+
+  // Qələbə mesajı
+  if (playerScore >= 5 || aiScore >= 5) {
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#ffcc00';
+    ctx.font = 'bold 48px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(playerScore >= 5 ? 'Sən Qalib Gəldin! 🎉' : 'Komputer Qalib Gəldi', W/2, H/2 - 20);
+    ctx.font = '24px Arial';
+    ctx.fillStyle = '#fff';
+    ctx.fillText('Yenidən oynamaq üçün düyməyə bas', W/2, H/2 + 30);
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Başlat
+resetBall();
+gameLoop();
+</script>
+</body>
+</html>
