@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Futbol Oyunu - Mobil & PC</title>
+<title>Futbol Oyunu</title>
 <style>
   * {
     margin: 0;
@@ -11,108 +11,99 @@
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
     touch-action: none;
+    user-select: none;
   }
   body {
-    background: #0a3d1f;
+    background: #0b3d1f;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     min-height: 100vh;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: 'Segoe UI', system-ui, sans-serif;
     color: white;
-    overflow: hidden;
-    user-select: none;
+    overflow-x: hidden;
   }
   .container {
     width: 100%;
     max-width: 960px;
+    padding: 10px 8px 20px;
     text-align: center;
-    padding: 8px;
   }
   h1 {
-    margin-bottom: 6px;
-    text-shadow: 2px 2px 4px #000;
-    font-size: clamp(1.4rem, 5vw, 2.2rem);
+    font-size: clamp(1.5rem, 5vw, 2.1rem);
+    margin-bottom: 10px;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.5);
   }
   #gameCanvas {
     background: #1a7a3a;
     border: 4px solid #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    border-radius: 10px;
     display: block;
     margin: 0 auto;
     width: 100%;
     max-width: 900px;
-    height: auto;
-    touch-action: none;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
   }
   .info {
-    margin-top: 10px;
-    font-size: clamp(0.95rem, 3.5vw, 1.15rem);
     display: flex;
     justify-content: center;
-    gap: 20px;
+    gap: 14px;
+    margin: 12px 0 8px;
     flex-wrap: wrap;
   }
   .score-box {
     background: rgba(0,0,0,0.45);
-    padding: 6px 16px;
-    border-radius: 8px;
-    min-width: 100px;
+    padding: 7px 18px;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    min-width: 110px;
   }
-  .controls-text {
-    margin-top: 8px;
-    font-size: 0.85rem;
-    opacity: 0.8;
-  }
-  button#restartBtn {
-    margin-top: 10px;
-    padding: 10px 24px;
-    font-size: 1rem;
+  #restartBtn {
+    margin-top: 6px;
+    padding: 11px 28px;
+    font-size: 1.05rem;
     background: #ffcc00;
     border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
+    border-radius: 10px;
+    font-weight: 700;
     color: #222;
+    cursor: pointer;
   }
 
-  /* ===== Mobil virtual düymələr ===== */
+  /* Mobil düymələr */
   #mobileControls {
     display: none;
     position: fixed;
-    bottom: 12px;
+    bottom: 16px;
     left: 0;
     right: 0;
-    padding: 0 12px;
-    z-index: 100;
+    padding: 0 16px;
+    z-index: 50;
     pointer-events: none;
   }
   .ctrl-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    max-width: 480px;
+    max-width: 420px;
     margin: 0 auto;
   }
   .dpad {
     display: grid;
-    grid-template-columns: 56px 56px 56px;
-    grid-template-rows: 56px 56px 56px;
-    gap: 4px;
+    grid-template-columns: 58px 58px 58px;
+    grid-template-rows: 58px 58px 58px;
+    gap: 5px;
     pointer-events: auto;
   }
   .dpad button {
-    width: 56px;
-    height: 56px;
+    width: 58px;
+    height: 58px;
     border: none;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.25);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.22);
     color: white;
     font-size: 22px;
-    font-weight: bold;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(6px);
   }
   .dpad button:active,
   .dpad button.active {
@@ -125,51 +116,40 @@
   .dpad .empty { visibility: hidden; }
 
   .kick-btn {
-    width: 80px;
-    height: 80px;
+    width: 78px;
+    height: 78px;
     border-radius: 50%;
     border: none;
-    background: rgba(255, 80, 80, 0.7);
+    background: rgba(220, 50, 50, 0.85);
     color: white;
-    font-size: 18px;
-    font-weight: bold;
+    font-size: 17px;
+    font-weight: 700;
     pointer-events: auto;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
   .kick-btn:active,
   .kick-btn.active {
-    background: rgba(255, 40, 40, 0.95);
-    transform: scale(0.95);
+    background: rgba(255, 30, 30, 1);
+    transform: scale(0.94);
   }
 
   @media (max-width: 768px) {
-    #mobileControls {
-      display: block;
-    }
-    .controls-text {
-      display: none;
-    }
-    body {
-      padding-bottom: 160px;
-    }
+    #mobileControls { display: block; }
+    body { padding-bottom: 170px; }
   }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>⚽ Futbol Oyunu</h1>
-  <canvas id="gameCanvas" width="900" height="500"></canvas>
+  <canvas id="gameCanvas"></canvas>
   <div class="info">
     <div class="score-box">Sən: <span id="playerScore">0</span></div>
     <div class="score-box">Komputer: <span id="aiScore">0</span></div>
   </div>
-  <div class="controls-text">
-    Klaviatura: ← → ↑ ↓ / WASD + Space (vurmaq)
-  </div>
-  <button id="restartBtn" onclick="restartGame()">Yenidən Başla</button>
+  <button id="restartBtn">Yenidən Başla</button>
 </div>
 
-<!-- Mobil düymələr -->
 <div id="mobileControls">
   <div class="ctrl-row">
     <div class="dpad">
@@ -191,34 +171,12 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-let W = canvas.width;
-let H = canvas.height;
+let W = 900;
+let H = 500;
 
-// Oyun obyektləri
-const player = {
-  x: 150,
-  y: H / 2,
-  radius: 18,
-  speed: 4.5,
-  color: '#1565c0'
-};
-
-const ai = {
-  x: W - 150,
-  y: H / 2,
-  radius: 18,
-  speed: 3.4,
-  color: '#c62828'
-};
-
-const ball = {
-  x: W / 2,
-  y: H / 2,
-  radius: 12,
-  vx: 0,
-  vy: 0,
-  friction: 0.985
-};
+const player = { x: 150, y: 250, radius: 18, speed: 4.6, color: '#1565c0' };
+const ai     = { x: 750, y: 250, radius: 18, speed: 3.5, color: '#c62828' };
+const ball   = { x: 450, y: 250, radius: 12, vx: 0, vy: 0, friction: 0.984 };
 
 let playerScore = 0;
 let aiScore = 0;
@@ -226,7 +184,41 @@ let keys = {};
 let touchDirs = { up: false, down: false, left: false, right: false };
 let isKicking = false;
 
-// ===== Klaviatura =====
+// ===== Ölçü düzəltmə (əsas düzəliş buradadır) =====
+function resizeCanvas() {
+  const maxWidth = Math.min(window.innerWidth - 16, 900);
+  const ratio = 500 / 900;
+  const cssW = maxWidth;
+  const cssH = Math.floor(cssW * ratio);
+
+  // CSS ölçüsü
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+
+  // Real piksel ölçüsü (retina üçün)
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = Math.floor(cssW * dpr);
+  canvas.height = Math.floor(cssH * dpr);
+
+  // Transformu sıfırla və yenidən tətbiq et (köhnə scale yığılmasın)
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  W = cssW;
+  H = cssH;
+
+  // Obyektləri sərhəddən kənara çıxarma
+  player.x = Math.min(Math.max(player.x, 40), W - 60);
+  player.y = Math.min(Math.max(player.y, 30), H - 30);
+  ai.x     = Math.min(Math.max(ai.x, W - 180), W - 40);
+  ai.y     = Math.min(Math.max(ai.y, 30), H - 30);
+  ball.x   = Math.min(Math.max(ball.x, 30), W - 30);
+  ball.y   = Math.min(Math.max(ball.y, 30), H - 30);
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas(); // ilk dəfə
+
+// ===== İdarəetmə =====
 document.addEventListener('keydown', e => {
   keys[e.key.toLowerCase()] = true;
   if (e.code === 'Space') {
@@ -239,29 +231,26 @@ document.addEventListener('keyup', e => {
   if (e.code === 'Space') isKicking = false;
 });
 
-// ===== Mobil toxunma düymələri =====
-const dpadButtons = document.querySelectorAll('.dpad button');
-const kickBtn = document.getElementById('kickBtn');
-
-function setDir(dir, state) {
-  touchDirs[dir] = state;
-  const btn = document.querySelector(.dpad .${dir});
-  if (btn) btn.classList.toggle('active', state);
-}
-
-dpadButtons.forEach(btn => {
+// Mobil düymələr
+document.querySelectorAll('.dpad button').forEach(btn => {
   const dir = btn.dataset.dir;
   btn.addEventListener('touchstart', e => {
     e.preventDefault();
-    setDir(dir, true);
+    touchDirs[dir] = true;
+    btn.classList.add('active');
   }, { passive: false });
   btn.addEventListener('touchend', e => {
     e.preventDefault();
-    setDir(dir, false);
+    touchDirs[dir] = false;
+    btn.classList.remove('active');
   }, { passive: false });
-  btn.addEventListener('touchcancel', () => setDir(dir, false));
+  btn.addEventListener('touchcancel', () => {
+    touchDirs[dir] = false;
+    btn.classList.remove('active');
+  });
 });
 
+const kickBtn = document.getElementById('kickBtn');
 kickBtn.addEventListener('touchstart', e => {
   e.preventDefault();
   isKicking = true;
@@ -277,44 +266,19 @@ kickBtn.addEventListener('touchcancel', () => {
   kickBtn.classList.remove('active');
 });
 
-// ===== Canvas ölçüsünü uyğunlaşdır =====
-function resizeCanvas() {
-  const maxW = Math.min(window.innerWidth - 16, 900);
-  const ratio = 500 / 900;
-  const newW = maxW;
-  const newH = Math.floor(newW * ratio);
+document.getElementById('restartBtn').addEventListener('click', restartGame);
 
-  canvas.style.width = newW + 'px';
-  canvas.style.height = newH + 'px';
-
-  // Daxili həll (keyfiyyət üçün)
-  const scale = window.devicePixelRatio || 1;
-  canvas.width = newW * scale;
-  canvas.height = newH * scale;
-  ctx.scale(scale, scale);
-
-  W = newW;
-  H = newH;
-
-  // Obyektləri yenidən yerləşdir
-  player.x = Math.min(player.x, W - 40);
-  ai.x = Math.max(ai.x, W - 180);
-  ball.x = Math.min(ball.x, W - 20);
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-// ===== Çəkmə funksiyaları =====
+// ===== Çəkmə =====
 function drawField() {
   ctx.fillStyle = '#1a7a3a';
   ctx.fillRect(0, 0, W, H);
 
-  ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.75)';
   ctx.lineWidth = 3;
 
   // Orta dairə
   ctx.beginPath();
-  ctx.arc(W/2, H/2, Math.min(70, H*0.14), 0, Math.PI*2);
+  ctx.arc(W/2, H/2, Math.min(65, H*0.13), 0, Math.PI*2);
   ctx.stroke();
 
   // Orta xətt
@@ -327,27 +291,30 @@ function drawField() {
   const goalH = H * 0.28;
   const goalY = (H - goalH) / 2;
 
-  ctx.fillStyle = 'rgba(255,255,255,0.12)';
-  ctx.fillRect(0, goalY, 22, goalH);
-  ctx.strokeRect(0, goalY, 22, goalH);
+  ctx.fillStyle = 'rgba(255,255,255,0.13)';
+  ctx.fillRect(0, goalY, 20, goalH);
+  ctx.strokeRect(0, goalY, 20, goalH);
 
-  ctx.fillRect(W - 22, goalY, 22, goalH);
-  ctx.strokeRect(W - 22, goalY, 22, goalH);
+  ctx.fillRect(W-20, goalY, 20, goalH);
+  ctx.strokeRect(W-20, goalY, 20, goalH);
 
   // Cərimə sahələri
-  ctx.strokeRect(0, goalY - 40, 80, goalH + 80);
-  ctx.strokeRect(W - 80, goalY - 40, 80, goalH + 80);
+  ctx.strokeRect(0, goalY-35, 75, goalH+70);
+  ctx.strokeRect(W-75, goalY-35, 75, goalH+70);
 }
 
-function drawPlayer(p) {
+function drawCircle(obj) {
   ctx.beginPath();
-  ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
-  ctx.fillStyle = p.color;
+  ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI*2);
+  ctx.fillStyle = obj.color || '#fff';
   ctx.fill();
   ctx.strokeStyle = '#fff';
   ctx.lineWidth = 2;
   ctx.stroke();
+}
 
+function drawPlayer(p) {
+  drawCircle(p);
   // Gözlər
   ctx.fillStyle = '#fff';
   ctx.beginPath();
@@ -357,16 +324,10 @@ function drawPlayer(p) {
 }
 
 function drawBall() {
+  drawCircle(ball);
   ctx.beginPath();
-  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
-  ctx.fillStyle = '#fff';
-  ctx.fill();
-  ctx.strokeStyle = '#111';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(ball.x, ball.y, ball.radius * 0.55, 0, Math.PI*2);
+  ctx.arc(ball.x, ball.y, ball.radius*0.55, 0, Math.PI*2);
+  ctx.strokeStyle = '#222';
   ctx.stroke();
 }
 
@@ -374,38 +335,14 @@ function drawBall() {
 function collide(a, b) {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
-  return Math.sqrt(dx*dx + dy*dy) < a.radius + b.radius;
+  return Math.hypot(dx, dy) < a.radius + b.radius;
 }
 
-function kickBall(p) {
+function kick(p) {
   if (collide(p, ball)) {
     const angle = Math.atan2(ball.y - p.y, ball.x - p.x);
-    const power = 9.5;
-    ball.vx = Math.cos(angle) * power;
-    ball.vy = Math.sin(angle) * power;
-  }
-}
-
-function updateAI() {
-  const targetY = ball.y;
-  if (ai.y < targetY - 6) ai.y += ai.speed;
-  if (ai.y > targetY + 6) ai.y -= ai.speed;
-
-  if (ball.x > W * 0.55) {
-    if (ai.x > ball.x + 25) ai.x -= ai.speed;
-    if (ai.x < ball.x - 25) ai.x += ai.speed;
-  } else {
-    if (ai.x < W - 170) ai.x += ai.speed * 0.55;
-    if (ai.x > W - 110) ai.x -= ai.speed * 0.55;
-  }
-
-  ai.x = Math.max(ai.radius + 25, Math.min(W - ai.radius - 8, ai.x));
-  ai.y = Math.max(ai.radius + 4, Math.min(H - ai.radius - 4, ai.y));
-
-  if (collide(ai, ball) && Math.random() > 0.38) {
-    const angle = Math.atan2(ball.y - ai.y, ball.x - ai.x);
-    ball.vx = Math.cos(angle) * 7.8;
-    ball.vy = Math.sin(angle) * 7.8;
+    ball.vx = Math.cos(angle) * 9.8;
+    ball.vy = Math.sin(angle) * 9.8;
   }
 }
 
@@ -420,11 +357,31 @@ function updatePlayer() {
   if (up)    player.y -= player.speed;
   if (down)  player.y += player.speed;
 
-  player.x = Math.max(player.radius + 4, Math.min(W - player.radius - 25, player.x));
-  player.y = Math.max(player.radius + 4, Math.min(H - player.radius - 4, player.y));
+  player.x = Math.max(player.radius+3, Math.min(W-player.radius-25, player.x));
+  player.y = Math.max(player.radius+3, Math.min(H-player.radius-3, player.y));
 
-  if (isKicking || keys[' '] || keys['space']) {
-    kickBall(player);
+  if (isKicking || keys[' '] || keys['space']) kick(player);
+}
+
+function updateAI() {
+  if (ai.y < ball.y - 8) ai.y += ai.speed;
+  if (ai.y > ball.y + 8) ai.y -= ai.speed;
+
+  if (ball.x > W * 0.55) {
+    if (ai.x > ball.x + 20) ai.x -= ai.speed;
+    if (ai.x < ball.x - 20) ai.x += ai.speed;
+  } else {
+    if (ai.x < W - 160) ai.x += ai.speed * 0.5;
+    if (ai.x > W - 100) ai.x -= ai.speed * 0.5;
+  }
+
+  ai.x = Math.max(ai.radius+20, Math.min(W-ai.radius-5, ai.x));
+  ai.y = Math.max(ai.radius+3, Math.min(H-ai.radius-3, ai.y));
+
+  if (collide(ai, ball) && Math.random() > 0.4) {
+    const angle = Math.atan2(ball.y - ai.y, ball.x - ai.x);
+    ball.vx = Math.cos(angle) * 7.6;
+    ball.vy = Math.sin(angle) * 7.6;
   }
 }
 
@@ -435,7 +392,7 @@ function updateBall() {
   ball.vy *= ball.friction;
 
   // Yuxarı / aşağı
-  if (ball.y - ball.radius < 0 || ball.y + ball.radius > H) {
+  if (ball.y < ball.radius || ball.y > H - ball.radius) {
     ball.vy *= -0.82;
     ball.y = Math.max(ball.radius, Math.min(H - ball.radius, ball.y));
   }
@@ -443,24 +400,24 @@ function updateBall() {
   const goalH = H * 0.28;
   const goalY = (H - goalH) / 2;
 
-  // Sol divar
-  if (ball.x - ball.radius < 0) {
+  // Sol (AI qolu)
+  if (ball.x < ball.radius) {
     if (ball.y > goalY && ball.y < goalY + goalH) {
       aiScore++;
       document.getElementById('aiScore').textContent = aiScore;
-      resetBall();
+      resetPositions();
     } else {
       ball.vx *= -0.82;
       ball.x = ball.radius;
     }
   }
 
-  // Sağ divar
-  if (ball.x + ball.radius > W) {
+  // Sağ (sənin qolun)
+  if (ball.x > W - ball.radius) {
     if (ball.y > goalY && ball.y < goalY + goalH) {
       playerScore++;
       document.getElementById('playerScore').textContent = playerScore;
-      resetBall();
+      resetPositions();
     } else {
       ball.vx *= -0.82;
       ball.x = W - ball.radius;
@@ -470,17 +427,21 @@ function updateBall() {
   // Oyunçu ilə toqquşma
   if (collide(player, ball)) {
     const angle = Math.atan2(ball.y - player.y, ball.x - player.x);
-    const speed = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy) * 0.28 + 2.2;
+    const speed = Math.hypot(ball.vx, ball.vy) * 0.3 + 2.3;
     ball.vx = Math.cos(angle) * speed;
     ball.vy = Math.sin(angle) * speed;
   }
 }
 
-function resetBall() {
+function resetPositions() {
   ball.x = W / 2;
   ball.y = H / 2;
-  ball.vx = (Math.random() > 0.5 ? 1 : -1) * 3.2;
+  ball.vx = (Math.random() > 0.5 ? 1 : -1) * 3.5;
   ball.vy = (Math.random() - 0.5) * 4;
+  player.x = 150;
+  player.y = H / 2;
+  ai.x = W - 150;
+  ai.y = H / 2;
 }
 
 function restartGame() {
@@ -488,20 +449,11 @@ function restartGame() {
   aiScore = 0;
   document.getElementById('playerScore').textContent = 0;
   document.getElementById('aiScore').textContent = 0;
-  player.x = 150;
-  player.y = H / 2;
-  ai.x = W - 150;
-  ai.y = H / 2;
-  resetBall();
+  resetPositions();
 }
 
 // ===== Əsas döngü =====
 function gameLoop() {
-  // Ölçüləri yenilə (bəzən lazım olur)
-  if (canvas.width / (window.devicePixelRatio || 1) !== W) {
-    resizeCanvas();
-  }
-
   drawField();
   updatePlayer();
   updateAI();
@@ -510,26 +462,22 @@ function gameLoop() {
   drawPlayer(ai);
   drawBall();
 
-  // Qələbə
   if (playerScore >= 5 || aiScore >= 5) {
-    ctx.fillStyle = 'rgba(0,0,0,0.72)';
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
     ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = '#ffcc00';
-    ctx.font = bold ${Math.min(42, W*0.07)}px Arial;
+    ctx.font = bold ${Math.min(40, W*0.07)}px Arial;
     ctx.textAlign = 'center';
-    ctx.fillText(
-      playerScore >= 5 ? 'Sən Qalib Gəldin! 🎉' : 'Komputer Qalib Gəldi',
-      W/2, H/2 - 15
-    );
-    ctx.font = ${Math.min(20, W*0.04)}px Arial;
+    ctx.fillText(playerScore >= 5 ? 'Sən Qalib Gəldin! 🎉' : 'Komputer Qalib Gəldi', W/2, H/2 - 10);
     ctx.fillStyle = '#fff';
-    ctx.fillText('Yenidən oynamaq üçün düyməyə bas', W/2, H/2 + 25);
+    ctx.font = ${Math.min(18, W*0.04)}px Arial;
+    ctx.fillText('Yenidən oynamaq üçün düyməyə bas', W/2, H/2 + 30);
   }
 
   requestAnimationFrame(gameLoop);
 }
 
-resetBall();
+resetPositions();
 gameLoop();
 </script>
 </body>
